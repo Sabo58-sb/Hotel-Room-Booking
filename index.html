@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Booking System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .receipt-container, .input-container {
+            transition: all 0.3s ease-in-out;
+        }
+        /* Custom radio button styles */
+        .radio-label input:checked + div {
+            border-color: #4f46e5; /* indigo-600 */
+            background-color: #1d1d1f; /* indigo-100 */
+        }
+        .dark .radio-label input:checked + div {
+            border-color: #818cf8; /* indigo-400 */
+            background-color: #3730a3; /* indigo-800 */
+        }
+        
+        /* Print-specific styles */
+        @media print {
+            body {
+                background-color: white;
+                color: black;
+            }
+            .no-print {
+                display: none;
+            }
+            .print-only-receipt {
+                box-shadow: none;
+                width: 100%;
+                max-width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            table {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-6xl mx-auto">
+        <div class="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl overflow-hidden print-only-receipt">
+            <div class="p-8">
+                <div class="no-print">
+                    <h1 class="text-3xl font-bold text-center text-indigo-600 dark:text-indigo-400 mb-2">Hotel Booking Room</h1>
+                    <p class="text-center text-gray-500 dark:text-gray-400 mb-2">Manage nightly stays, short sessions, and extras with ease.</p>
+                    <!-- Date and Summary Display -->
+                    <p id="currentDate" class="text-center text-gray-500 dark:text-gray-400 font-medium"></p>
+                    <p id="bookingSummary" class="text-center text-indigo-500 dark:text-indigo-300 font-semibold mt-2 mb-8"></p>
+
+                    <!-- Booking Form -->
+                    <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl shadow-inner">
+                        <form id="bookingForm">
+                            <!-- Booking Type Selection -->
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Booking Type</label>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <label class="radio-label cursor-pointer">
+                                        <input type="radio" name="bookingType" value="nightly" class="sr-only" checked>
+                                        <div class="p-4 border-2 border-gray-300 dark:border-gray-500 rounded-lg text-center transition">
+                                            <h3 class="font-semibold">Nightly Stay</h3>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">$60 / night</p>
+                                        </div>
+                                    </label>
+                                    <label class="radio-label cursor-pointer">
+                                        <input type="radio" name="bookingType" value="session" class="sr-only">
+                                        <div class="p-4 border-2 border-gray-300 dark:border-gray-500 rounded-lg text-center transition">
+                                            <h3 class="font-semibold">Session (3 Hours)</h3>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">$30 / session</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+                                <!-- Dynamic Input for Nights/Sessions -->
+                                <div id="nightsInput" class="input-container">
+                                    <label for="nights" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nights (Qty)</label>
+                                    <input type="number" id="nights" name="nights" required min="1" value="1" class="w-full bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                                <div id="sessionsInput" class="input-container hidden">
+                                    <label for="sessions" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sessions (Qty)</label>
+                                    <input type="number" id="sessions" name="sessions" required min="1" value="1" class="w-full bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                                
+                                <div>
+                                    <label for="room" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Room (S1-S13)</label>
+                                    <input type="text" id="room" name="room" list="room-list" required class="w-full bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <datalist id="room-list">
+                                        <option value="S1"></option><option value="S2"></option><option value="S3"></option><option value="S4"></option><option value="S5"></option><option value="S6"></option><option value="S7"></option><option value="S8"></option><option value="S9"></option><option value="S10"></option><option value="S11"></option><option value="S12"></option><option value="S13"></option>
+                                    </datalist>
+                                </div>
+
+                                <div>
+                                    <label for="condoms" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Condoms (Optional)</label>
+                                    <input type="number" id="condoms" name="condoms" min="0" value="0" class="w-full bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                                
+                                <div>
+                                    <label for="bookingDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Booking Date</label>
+                                    <input type="date" id="bookingDate" name="bookingDate" required class="w-full bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                            </div>
+
+                            <div class="md:col-span-4 mt-6">
+                                <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Guest Name</label>
+                                <input type="text" id="name" name="name" required class="w-full bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                             <!-- Payment Method Selection -->
+                            <div class="mt-6">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Payment Method</label>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <label class="radio-label cursor-pointer">
+                                        <input type="radio" name="paymentMethod" value="Cash" class="sr-only" checked>
+                                        <div class="p-4 border-2 border-gray-300 dark:border-gray-500 rounded-lg text-center transition">
+                                            <h3 class="font-semibold">Cash</h3>
+                                        </div>
+                                    </label>
+                                    <label class="radio-label cursor-pointer">
+                                        <input type="radio" name="paymentMethod" value="ABA Bank" class="sr-only">
+                                        <div class="p-4 border-2 border-gray-300 dark:border-gray-500 rounded-lg text-center transition">
+                                            <h3 class="font-semibold">ABA Bank</h3>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="mt-8 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                                Add Booking to Receipt
+                            </button>
+                        </form>
+                    </div>
+
+                     <!-- NEW: Room Availability Section -->
+                    <div id="roomStatusContainer" class="mt-10 no-print">
+                        <h2 class="text-2xl font-semibold mb-4 text-center">Room Availability Status</h2>
+                        <div id="roomStatusList" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 bg-gray-50 dark:bg-gray-700 p-6 rounded-xl shadow-inner">
+                            <!-- Room statuses will be dynamically inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Receipt Section -->
+                <div id="receipt" class="mt-10 receipt-container opacity-0 scale-95">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-semibold">--- Receipt ---</h2>
+                        <button id="clearButton" class="no-print bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                            Clear All Bookings
+                        </button>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl shadow-inner">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="border-b border-gray-200 dark:border-gray-600">
+                                        <th class="p-3 text-sm font-semibold tracking-wide">Date</th>
+                                        <th class="p-3 text-sm font-semibold tracking-wide">Room</th>
+                                        <th class="p-3 text-sm font-semibold tracking-wide">Name</th>
+                                        <th class="p-3 text-sm font-semibold tracking-wide">Details</th>
+                                        <th class="p-3 text-sm font-semibold tracking-wide">Payment</th>
+                                        <th class="p-3 text-sm font-semibold tracking-wide">Checkout Date</th>
+                                        <th class="p-3 text-sm font-semibold tracking-wide text-right">Price</th>
+                                        <th class="p-3 text-sm font-semibold tracking-wide text-center no-print">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bookingList">
+                                    <!-- Booking entries will be added here -->
+                                </tbody>
+                                <tfoot>
+                                    <tr class="border-t-2 border-gray-300 dark:border-gray-500 font-bold">
+                                        <td colspan="7" class="p-3 text-lg text-right">Total =</td>
+                                        <td id="totalPrice" class="p-3 text-lg text-right">$0</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <button id="printButton" class="mt-6 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 hidden no-print">
+                            Print / Save as PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Booking Modal -->
+    <div id="editModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 no-print">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-lg">
+            <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-4">Edit Booking</h3>
+            <form id="editForm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="editName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Guest Name</label>
+                        <input type="text" id="editName" class="mt-1 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label for="editRoom" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Room</label>
+                        <input type="text" id="editRoom" list="room-list" class="mt-1 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2">
+                    </div>
+                    <div>
+                        <label for="editQuantity" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nights/Sessions</label>
+                        <input type="number" id="editQuantity" min="1" class="mt-1 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2">
+                    </div>
+                     <div>
+                        <label for="editCondoms" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Condoms</label>
+                        <input type="number" id="editCondoms" min="0" class="mt-1 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2">
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Payment Method</label>
+                    <div class="flex gap-4 mt-2">
+                        <label class="flex items-center"><input type="radio" id="editPaymentCash" name="editPayment" value="Cash" class="mr-2">Cash</label>
+                        <label class="flex items-center"><input type="radio" id="editPaymentABA" name="editPayment" value="ABA Bank" class="mr-2">ABA Bank</label>
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end space-x-4">
+                    <button type="button" id="cancelEdit" class="bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg">Cancel</button>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div id="confirmDeleteModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 no-print">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
+            <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-2">Are you sure?</h3>
+            <p id="deleteConfirmText" class="text-sm text-gray-500 dark:text-gray-400 mb-6"></p>
+            <div class="flex justify-center space-x-4">
+                <button type="button" id="cancelDelete" class="bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg">Cancel</button>
+                <button type="button" id="confirmDelete" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">Confirm Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clear All Confirmation Modal -->
+    <div id="confirmClearModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 no-print">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
+            <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-2">Are you sure?</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">This will permanently delete all booking records. This action cannot be undone.</p>
+            <div class="flex justify-center space-x-4">
+                <button type="button" id="cancelClear" class="bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg">Cancel</button>
+                <button type="button" id="confirmClear" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">Yes, Clear All</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Room Unavailable Modal -->
+    <div id="roomUnavailableModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 no-print">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
+            <h3 class="text-lg font-medium leading-6 text-red-600 dark:text-red-400 mb-2">Room Unavailable</h3>
+            <p id="unavailableText" class="text-sm text-gray-500 dark:text-gray-400 mb-6"></p>
+            <div class="flex justify-center">
+                <button type="button" id="closeUnavailable" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">OK</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- State ---
+        let bookings = [];
+        let currentBookingId = null; 
+
+        // --- Constants ---
+        const NIGHTLY_RATE = 60;
+        const SESSION_RATE = 30;
+        const CONDOM_PRICE = 10;
+        const STORAGE_KEY = 'hotelBookings';
+        const ALL_ROOMS = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'S13'];
+
+
+        // --- DOM Elements ---
+        const bookingForm = document.getElementById('bookingForm');
+        const bookingList = document.getElementById('bookingList');
+        const totalPriceEl = document.getElementById('totalPrice');
+        const receiptContainer = document.getElementById('receipt');
+        const bookingTypeRadios = document.querySelectorAll('input[name="bookingType"]');
+        const nightsInputContainer = document.getElementById('nightsInput');
+        const sessionsInputContainer = document.getElementById('sessionsInput');
+        const currentDateEl = document.getElementById('currentDate');
+        const bookingSummaryEl = document.getElementById('bookingSummary');
+        const bookingDateInput = document.getElementById('bookingDate');
+        const printButton = document.getElementById('printButton');
+        const clearButton = document.getElementById('clearButton');
+        const roomStatusListEl = document.getElementById('roomStatusList');
+        // Modals
+        const editModal = document.getElementById('editModal');
+        const editForm = document.getElementById('editForm');
+        const cancelEditBtn = document.getElementById('cancelEdit');
+        const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+        const cancelDeleteBtn = document.getElementById('cancelDelete');
+        const confirmDeleteBtn = document.getElementById('confirmDelete');
+        const deleteConfirmText = document.getElementById('deleteConfirmText');
+        const confirmClearModal = document.getElementById('confirmClearModal');
+        const cancelClearBtn = document.getElementById('cancelClear');
+        const confirmClearBtn = document.getElementById('confirmClear');
+        const roomUnavailableModal = document.getElementById('roomUnavailableModal');
+        const unavailableText = document.getElementById('unavailableText');
+        const closeUnavailableBtn = document.getElementById('closeUnavailable');
+
+
+        // --- Data Persistence ---
+        function saveBookings() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
+        }
+
+        function loadBookings() {
+            const savedBookings = localStorage.getItem(STORAGE_KEY);
+            if (savedBookings) {
+                bookings = JSON.parse(savedBookings);
+            }
+        }
+
+        // --- Initial Setup ---
+        function initializeApp() {
+            const today = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            currentDateEl.textContent = "Today: " + today.toLocaleDateString('en-US', options);
+            
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            bookingDateInput.value = `${yyyy}-${mm}-${dd}`;
+
+            loadBookings();
+            renderReceipt();
+        }
+
+        // --- Event Listeners ---
+        bookingForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            addBooking(new FormData(this));
+        });
+
+        printButton.addEventListener('click', () => window.print());
+        clearButton.addEventListener('click', () => confirmClearModal.classList.remove('hidden'));
+
+        bookingList.addEventListener('click', function(event) {
+            const target = event.target.closest('button');
+            if (!target) return;
+
+            const bookingId = target.dataset.id;
+            if (target.matches('.edit-btn')) {
+                handleEdit(bookingId);
+            } else if (target.matches('.delete-btn')) {
+                handleDelete(bookingId);
+            }
+        });
+        
+        // Modal Listeners
+        editForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            handleSaveChanges(currentBookingId);
+        });
+        cancelEditBtn.addEventListener('click', () => editModal.classList.add('hidden'));
+
+        cancelDeleteBtn.addEventListener('click', () => confirmDeleteModal.classList.add('hidden'));
+        confirmDeleteBtn.addEventListener('click', () => {
+            bookings = bookings.filter(b => b.id !== currentBookingId);
+            renderReceipt();
+            confirmDeleteModal.classList.add('hidden');
+        });
+
+        cancelClearBtn.addEventListener('click', () => confirmClearModal.classList.add('hidden'));
+        confirmClearBtn.addEventListener('click', () => {
+            bookings = [];
+            renderReceipt();
+            confirmClearModal.classList.add('hidden');
+        });
+        
+        closeUnavailableBtn.addEventListener('click', () => roomUnavailableModal.classList.add('hidden'));
+
+        bookingTypeRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'nightly') {
+                    nightsInputContainer.classList.remove('hidden');
+                    sessionsInputContainer.classList.add('hidden');
+                } else {
+                    nightsInputContainer.classList.add('hidden');
+                    sessionsInputContainer.classList.remove('hidden');
+                }
+            });
+        });
+
+
+        // --- Core Logic ---
+        function checkAvailability(room, dateStr, quantity, type, bookingIdToExclude = null) {
+            const newStart = new Date(dateStr + 'T00:00:00');
+            let newEnd = new Date(newStart);
+            if (type === 'nightly') {
+                newEnd.setDate(newStart.getDate() + quantity);
+            } else {
+                newEnd.setDate(newStart.getDate() + 1);
+            }
+
+            for (const booking of bookings) {
+                if (booking.id === bookingIdToExclude || booking.room !== room) {
+                    continue;
+                }
+                const existingStart = new Date(booking.rawDate + 'T00:00:00');
+                let existingEnd = new Date(existingStart);
+                 if (booking.bookingType === 'nightly') {
+                    existingEnd.setDate(existingStart.getDate() + booking.quantity);
+                } else {
+                    existingEnd.setDate(existingStart.getDate() + 1);
+                }
+                
+                // Overlap check
+                if (newStart < existingEnd && newEnd > existingStart) {
+                    return false; // Found an overlapping booking
+                }
+            }
+            return true; // Room is available
+        }
+
+        function addBooking(formData) {
+            const room = formData.get('room');
+            const dateStr = formData.get('bookingDate');
+            const type = formData.get('bookingType');
+            const quantity = (type === 'nightly') ? 
+                (parseInt(formData.get('nights')) || 1) : 
+                (parseInt(formData.get('sessions')) || 1);
+
+            if (!checkAvailability(room, dateStr, quantity, type)) {
+                unavailableText.textContent = `Room ${room} is already occupied on ${new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US')}.`;
+                roomUnavailableModal.classList.remove('hidden');
+                return;
+            }
+            
+            const condoms = parseInt(formData.get('condoms')) || 0;
+            const newBooking = {
+                id: crypto.randomUUID(),
+                date: new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US'),
+                rawDate: dateStr,
+                room: room,
+                name: formData.get('name'),
+                paymentMethod: formData.get('paymentMethod'),
+                quantity: quantity,
+                condoms: condoms,
+                bookingType: type
+            };
+
+            updateBookingCalculations(newBooking);
+            bookings.push(newBooking);
+            renderReceipt();
+            
+            bookingForm.reset();
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            bookingDateInput.value = `${yyyy}-${mm}-${dd}`;
+            document.getElementById('room').focus();
+        }
+        
+        function handleEdit(bookingId) {
+            const booking = bookings.find(b => b.id === bookingId);
+            if (!booking) return;
+
+            currentBookingId = bookingId;
+            document.getElementById('editName').value = booking.name;
+            document.getElementById('editRoom').value = booking.room;
+            document.getElementById('editQuantity').value = booking.quantity;
+            document.getElementById('editCondoms').value = booking.condoms;
+            if (booking.paymentMethod === 'Cash') {
+                document.getElementById('editPaymentCash').checked = true;
+            } else {
+                document.getElementById('editPaymentABA').checked = true;
+            }
+            editModal.classList.remove('hidden');
+        }
+
+        function handleSaveChanges(bookingId) {
+            const bookingIndex = bookings.findIndex(b => b.id === bookingId);
+            if (bookingIndex === -1) return;
+
+            const booking = bookings[bookingIndex];
+            const newRoom = document.getElementById('editRoom').value;
+            const newQuantity = parseInt(document.getElementById('editQuantity').value) || 1;
+            
+            if (!checkAvailability(newRoom, booking.rawDate, newQuantity, booking.bookingType, booking.id)) {
+                 unavailableText.textContent = `Room ${newRoom} is already occupied during that time.`;
+                 roomUnavailableModal.classList.remove('hidden');
+                 return;
+            }
+
+            booking.name = document.getElementById('editName').value;
+            booking.room = newRoom;
+            booking.quantity = newQuantity;
+            booking.condoms = parseInt(document.getElementById('editCondoms').value) || 0;
+            booking.paymentMethod = document.querySelector('input[name="editPayment"]:checked').value;
+
+            updateBookingCalculations(booking);
+            renderReceipt();
+            editModal.classList.add('hidden');
+        }
+
+        function handleDelete(bookingId) {
+            const booking = bookings.find(b => b.id === bookingId);
+            if (!booking) return;
+            currentBookingId = bookingId;
+            deleteConfirmText.textContent = `Delete booking for ${booking.name} in room ${booking.room}?`;
+            confirmDeleteModal.classList.remove('hidden');
+        }
+        
+        function updateBookingCalculations(booking) {
+            let price = 0;
+            let details = '';
+
+            if (booking.bookingType === 'nightly') {
+                price += booking.quantity * NIGHTLY_RATE;
+                details = `${booking.quantity} Night(s)`;
+            } else {
+                price += booking.quantity * SESSION_RATE;
+                details = `${booking.quantity} Session(s)`;
+            }
+
+            if (booking.condoms > 0) {
+                price += booking.condoms * CONDOM_PRICE;
+                details += `, ${booking.condoms} Condom(s)`;
+            }
+            booking.price = price;
+            booking.details = details;
+            
+            const dateObj = new Date(booking.rawDate + 'T00:00:00');
+            let checkoutDateObj = new Date(dateObj);
+             if (booking.bookingType === 'nightly') {
+                checkoutDateObj.setDate(checkoutDateObj.getDate() + booking.quantity);
+            } else {
+                checkoutDateObj.setDate(checkoutDateObj.getDate() + 1);
+            }
+            booking.checkoutDate = checkoutDateObj.toLocaleDateString('en-US');
+        }
+
+        // --- Rendering Logic ---
+        function renderReceipt() {
+            bookingList.innerHTML = '';
+            let total = 0;
+            
+            // Sort bookings by date and then room number
+            bookings.sort((a, b) => {
+                const dateA = new Date(a.rawDate);
+                const dateB = new Date(b.rawDate);
+                if (dateA < dateB) return -1;
+                if (dateA > dateB) return 1;
+                // If dates are same, sort by room
+                return a.room.localeCompare(b.room, undefined, {numeric: true});
+            });
+
+
+            bookings.forEach(booking => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600';
+                
+                const actionsHtml = `
+                    <div class="flex justify-center items-center space-x-2">
+                        <button data-id="${booking.id}" class="edit-btn text-blue-500 hover:text-blue-700 no-print" title="Edit">
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>
+                        </button>
+                        <button data-id="${booking.id}" class="delete-btn text-red-500 hover:text-red-700 no-print" title="Delete">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </div>`;
+
+                row.innerHTML = `
+                    <td class="p-3">${booking.date}</td>
+                    <td class="p-3">${booking.room}</td>
+                    <td class="p-3">${booking.name}</td>
+                    <td class="p-3">${booking.details}</td>
+                    <td class="p-3">${booking.paymentMethod}</td>
+                    <td class="p-3">${booking.checkoutDate}</td>
+                    <td class="p-3 text-right">$${booking.price}</td>
+                    <td class="p-3 text-center no-print">${actionsHtml}</td>
+                `;
+                bookingList.appendChild(row);
+                total += booking.price;
+            });
+
+            totalPriceEl.textContent = `$${total}`;
+
+            if (bookings.length > 0) {
+                receiptContainer.classList.remove('opacity-0', 'scale-95');
+                printButton.classList.remove('hidden');
+                clearButton.classList.remove('hidden');
+            } else {
+                receiptContainer.classList.add('opacity-0', 'scale-95');
+                printButton.classList.add('hidden');
+                clearButton.classList.add('hidden');
+            }
+            
+            updateSummary();
+            renderRoomStatus();
+            saveBookings(); 
+        }
+
+        function renderRoomStatus() {
+            roomStatusListEl.innerHTML = '';
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            ALL_ROOMS.forEach(room => {
+                const roomBookings = bookings.filter(b => b.room === room);
+                let isOccupied = false;
+                let availableDate = null;
+
+                if (roomBookings.length > 0) {
+                    for (const booking of roomBookings) {
+                        const startDate = new Date(booking.rawDate + 'T00:00:00');
+                        let endDate = new Date(startDate);
+
+                        if (booking.bookingType === 'nightly') {
+                            endDate.setDate(startDate.getDate() + booking.quantity);
+                        } else {
+                            endDate.setDate(startDate.getDate() + 1);
+                        }
+                        
+                        if (today >= startDate && today < endDate) {
+                            isOccupied = true;
+                            if (!availableDate || endDate > availableDate) {
+                                 availableDate = endDate;
+                            }
+                        }
+                    }
+                }
+
+                const roomEl = document.createElement('div');
+                roomEl.className = 'p-3 rounded-lg flex justify-between items-center bg-white dark:bg-gray-800 shadow';
+                
+                let statusHTML;
+                if (isOccupied) {
+                    const dateString = availableDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    statusHTML = `
+                        <div class="text-left">
+                            <strong class="text-gray-800 dark:text-gray-200">${room}</strong>
+                            <p class="text-xs text-red-500 dark:text-red-400 font-semibold">Occupied</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Until: ${dateString}</p>
+                        </div>
+                        <div class="w-4 h-4 rounded-full bg-red-500"></div>
+                    `;
+                } else {
+                    statusHTML = `
+                        <div class="text-left">
+                            <strong class="text-gray-800 dark:text-gray-200">${room}</strong>
+                            <p class="text-xs text-green-500 dark:text-green-400 font-semibold">Available</p>
+                        </div>
+                         <div class="w-4 h-4 rounded-full bg-green-500"></div>
+                    `;
+                }
+                
+                roomEl.innerHTML = statusHTML;
+                roomStatusListEl.appendChild(roomEl);
+            });
+        }
+        
+        function updateSummary() {
+            const count = bookings.length;
+            bookingSummaryEl.textContent = `Total Bookings in System: ${count}`;
+        }
+
+        initializeApp();
+    </script>
+</body>
+</html>
+
